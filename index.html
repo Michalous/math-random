@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./styles.css">
+    <title>Math.random()</title>
+</head>
+<body>
+    <div class="backgr"></div>
+    <br>
+    <article class="mb-4">
+        <div class="container px-4 px-lg-5">
+            <div class="row gx-4 gx-lg-5 justify-content-center">
+                <div class="col-md-10 col-lg-8 col-xl-7">
+                    <h2 style="text-align: center;">Playing with Math.random()</h2>
+                    <br>
+                    <p>The first part of this page drew inspiration from the edx course Introduction to Computational Thinking and Data Science by MITx.</p>
+                    <h3>Monte Carlo Integration</h3>
+                    <p>At the end of lecture 8 the students were asked to write a code which would compute the value of the integral of sin(x) from 0 to Pi using Monte Carlo simulation.</p>
+                    <p>Below is the graph showing this simulation. You can run it for a different amount of darts.</p>
+                    
+                    <h4 style="text-align: center;">y = sin(x)</h4>
+                    <div style="display: flex; justify-content: center;">
+                        <canvas id="sin-canvas" width="320" height="300" style="border: 1px solid silver;"></canvas>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: center;">
+                        <div style="width: 320px; height: 25px; position: relative;">
+                            <span style="position: absolute; left: 0; bottom: 0;">0</span>
+                            <span style="position: absolute; right: 0; bottom: 0">&#960</span>
+                        </div>
+                    </div>
+                    <br>
+                    <br>
+                    <label for="darts">Choose a number of darts:</label>
+                        
+                    <select id="darts" name="darts">
+                        <option value="10">10</option>
+                        <option value="100">100</option>
+                        <option value="1000" selected="selected">1000</option>
+                        <option value="10000">10000</option>
+                        <option value="100000">100000</option>
+                    </select>
+                    <br>
+                    <br>
+                    <button id="submit_darts">Calculate</button>    
+                    <div></div>
+                      
+                    <br>
+                    <h5>Result:</h5><h5 id="integral_result"></h5>
+                    <div style="display: flex; flex-direction: row; align-items: center;">
+                        <img src="/assets/icons/info-circle.svg" alt="" style="height: 25px; margin-right: 20px;">
+                        <div style="padding-bottom: 25px;">
+                          <p class="card-text">This is a result of only 1 trial. When integrated analytically the result is 2.</p>
+                        </div>
+                    </div>
+                    <br>
+                    <br>
+
+
+    <script>
+        draw_graph()
+
+        function draw_graph(n = 1000) {
+        var underCurve = 0
+        for (var i = 1; i <= n; i++) {
+            var x = Math.random() * Math.PI
+            var y = Math.random()
+            if (Math.sin(x) > y) {
+                underCurve++
+                var c = document.getElementById("sin-canvas");
+                var ctx = c.getContext("2d");
+                ctx.beginPath();
+                //ctx.arc(x * 127, Math.floor(300 - y * 300), 2, 0, 2 * Math.PI);
+                ctx.arc(x * 102, Math.floor(300 - y * 300), 2, 0, 2 * Math.PI);
+                ctx.fillStyle = "red";
+                ctx.fill();
+                //ctx.stroke();
+            }
+            else {
+                var c = document.getElementById("sin-canvas");
+                var ctx = c.getContext("2d");
+                ctx.beginPath();
+                //ctx.arc(x * 127, 300 - y * 300, 2, 0, 2 * Math.PI);
+                ctx.arc(x * 102, 300 - y * 300, 2, 0, 2 * Math.PI);
+                ctx.fillStyle = "blue";
+                ctx.fill();
+                //ctx.stroke();
+            }
+        }
+        var integral_result = document.getElementById('integral_result')
+        integral_result.innerHTML = Math.PI * underCurve / n
+
+        function Calculator(canvas, x1, x2, y1, y2, func) {
+      	    var self = this;
+
+      	    var width = canvas.width;
+      	    var height = canvas.height;
+
+      	    var xRange = x2 - x1;
+      	    var yRange = y2 - y1;
+
+            self.calculatePoint = function(x) {
+                var y = func(x);
+                // chart will be reversed horizontaly because of reversed canvas pixels
+                var nx = (x - x1) / xRange;       // normalized x
+                var ny = 1.0 - (y - y1) / yRange; // normalized y
+                return {
+                    x: nx * width,
+                    y: ny * height
+                };
+            };
+        }
+    
+        function Chart(canvas, x1, x2, y1, y2, dx, func) {
+      	    var self = this;
+    	
+      	    var context = canvas.getContext('2d');
+      	    var calculator = new Calculator(canvas, x1, x2, y1, y2, func);
+       
+      	    self.drawChart = function(color, width) {
+                context.beginPath();
+          
+                var point = calculator.calculatePoint(x1);
+                context.moveTo(point.x, point.y);
+
+                for (var x = x1 + dx; x < x2; x += dx) {
+                    var point = calculator.calculatePoint(x);
+                    context.lineTo(point.x, point.y);
+                }
+          
+                var point = calculator.calculatePoint(x2);
+                context.lineTo(point.x, point.y);
+          
+          	    context.strokeStyle = color || 'black';
+          	    context.lineWidth = width || 1;
+
+                context.stroke();
+            };
+        }
+    
+    
+        // Usage example:
+    
+        var sinCanvas = document.querySelector('#sin-canvas');
+    
+        var dx = 0.1;  // x value step
+
+        var sinChart = new Chart(sinCanvas, 0, Math.PI, 0, +1, dx, Math.sin);
+    
+        sinChart.drawChart('red', 1);
+ 
+    }
+
+    var submit_btn = document.getElementById("submit_darts")
+    var darts = document.getElementById("darts")
+    submit_btn.onclick = function() {
+            var c = document.getElementById("sin-canvas");
+            var ctx = c.getContext("2d");
+            ctx.clearRect(0, 0, 400, 300);
+            draw_graph(darts.value)
+    }        
+    
+  </script>
+
+  <h3>Probability</h3>
+  <p>There's a fair share of coin tossing and dice rolling in the course. The textbook even explains the rules of craps and shows you the code to run the simulation.</p>
+  <p>Here's the histogram of simulation of rolling 2 dice n times.</p>
+  <div style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+  <div id='myDiv' style="width: 95%;"></div>
+  </div>
+  
+    <script src='https://cdn.plot.ly/plotly-2.12.1.min.js'></script>
+
+    <label for="dice_rolls">Select a number of rolls:</label>
+    <select id="dice_rolls" name="dice_rolls">
+        <option value="10">10</option>
+        <option value="100">100</option>
+        <option value="1000" selected="selected">1000</option>
+        <option value="10000">10000</option>
+        <option value="100000">100000</option>
+    </select>
+    <br>
+    <br>
+    <button id="submit_rolls">Simulate</button>    
+    <div></div>
+    <br>
+  
+<!--Table-->
+<table class="table">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Probability</th>
+        <th scope="col" class="text-center">Expected</th>
+        <th scope="col" class="text-end">Actual</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">2</th>
+        <td>1 / 36</td>
+        <td id="prdct_2" class="text-center"></td>
+        <td id="act_2" class="text-end"></td>
+      </tr>
+      <tr>
+        <th scope="row">3</th>
+        <td>2 / 36</td>
+        <td id="prdct_3" class="text-center"></td>
+        <td id="act_3" class="text-end"></td>
+      </tr>
+      <tr>
+        <th scope="row">4</th>
+        <td>3 / 36</td>
+        <td id="prdct_4" class="text-center"></td>
+        <td id="act_4" class="text-end"></td>
+      </tr>
+      <tr>
+        <th scope="row">5</th>
+        <td>4 / 36</td>
+        <td id="prdct_5" class="text-center"></td>
+        <td id="act_5" class="text-end"></td>
+      </tr>
+      <tr>
+        <th scope="row">6</th>
+        <td>5 / 36</td>
+        <td id="prdct_6" class="text-center"></td>
+        <td id="act_6" class="text-end"></td>
+      </tr>
+      <tr>
+        <th scope="row">7</th>
+        <td>6 / 36</td>
+        <td id="prdct_7" class="text-center"></td>
+        <td id="act_7" class="text-end"></td>
+      </tr>
+      <tr>
+        <th scope="row">8</th>
+        <td>5 / 36</td>
+        <td id="prdct_8" class="text-center"></td>
+        <td id="act_8" class="text-end"></td>
+      </tr>
+      <tr>
+        <th scope="row">9</th>
+        <td>4 / 36</td>
+        <td id="prdct_9" class="text-center"></td>
+        <td id="act_9" class="text-end"></td>
+      </tr>
+      <tr>
+        <th scope="row">10</th>
+        <td>3 / 36</td>
+        <td id="prdct_10" class="text-center"></td>
+        <td id="act_10" class="text-end"></td>
+      </tr>
+      <tr>
+        <th scope="row">11</th>
+        <td>2 / 36</td>
+        <td id="prdct_11" class="text-center"></td>
+        <td id="act_11" class="text-end"></td>
+      </tr>
+      <tr>
+        <th scope="row">12</th>
+        <td>1 / 36</td>
+        <td id="prdct_12" class="text-center"></td>
+        <td id="act_12" class="text-end"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+    
+    var x = [];
+    var counts = {}
+    function throw_dice(n) {
+      x = []
+      counts = {}
+      for (var i = 0; i < n; i ++) {
+        a = Math.ceil(Math.random() * 6)
+        b = Math.ceil(Math.random() * 6)
+        x.push(a + b)
+      }
+      for (var num of x) {
+          counts[num] = counts[num] ? counts[num] + 1 : 1
+      }
+      return [n, counts]
+    }
+
+    var n = throw_dice(n = 1000)
+    draw_rolls()
+
+    function draw_rolls() {
+    var trace = {
+        x: x,
+        type: 'histogram',
+    };
+    var data = [trace];
+
+    var layout = {
+			  title: '',
+			  showlegend: false
+		  }
+    Plotly.newPlot('myDiv', data, layout, {displayModeBar : false});
+  
+  probability = [0, 0, 1/36, 2/36, 3/36, 4/36, 5/36, 6/36, 5/36, 4/36, 3/36, 2/36, 1/36]
+  for (var j = 2; j <= 12; j++) {
+      document.getElementById(`prdct_${j}`).innerHTML = Math.round(probability[j] * n[0])
+      document.getElementById(`act_${j}`).innerHTML = n[1][j] ? n[1][j] : 0
+  }
+  
+    }
+    var submit_rolls = document.getElementById('submit_rolls')
+    submit_rolls.onclick = function() {
+        var dice_rolls = document.getElementById("dice_rolls")
+        n = throw_dice(dice_rolls.value)
+        draw_rolls()
+  }
+
+})
+</script>
+<!--Dice-->
+<br>
+  <div class="dice_container" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+    <div class="container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: auto;">
+        <div class="row1">
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-1.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-1.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-1.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-2.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-1.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-3.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-1.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-4.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-1.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-5.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-1.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-6.svg" alt="">
+            </div>
+        </div>
+        <div class="row1">
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-2.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-1.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-2.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-2.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-2.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-3.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-2.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-4.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-2.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-5.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-2.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-6.svg" alt="">
+            </div>
+        </div>
+        <div class="row1">
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-3.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-1.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-3.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-2.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-3.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-3.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-3.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-4.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-3.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-5.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-3.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-6.svg" alt="">
+            </div>
+        </div>
+        <div class="row1">
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-4.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-1.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-4.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-2.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-4.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-3.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-4.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-4.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-4.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-5.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-4.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-6.svg" alt="">
+            </div>
+        </div>
+        <div class="row1">
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-5.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-1.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-5.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-2.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-5.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-3.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-5.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-4.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-5.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-5.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-5.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-6.svg" alt="">
+            </div>
+        </div>
+        <div class="row1">
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-6.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-1.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-6.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-2.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-6.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-3.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-6.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-4.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-6.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-5.svg" alt="">
+            </div>
+            <div class="sub-cont">
+                <img class="dice_image" src="/assets/dice/dice-6.svg" alt="">
+                <img class="dice_image" src="/assets/dice/dice-6.svg" alt="">
+            </div>
+        </div>
+        </div>
+
+        
+
+
+</div>
+
+    <br>
+    <br>
+    <h3 style="margin-bottom: 10px;">The Birthday Problem</h3>
+    <p>I came across this article <a href="https://www.bbc.co.uk/bitesize/articles/zgdw239" target="_blank">The birthday paradox</a> on BBC website and it just didn't feel right. How could it be that in a group of 23 people there's 50% chance that 2 will share birthday? So here we run a simulation and the resulting graph is below. The article was correct.</p>
+    <div id="birthday_container" class="birthday_container" style="margin-top: 20px;"></div>
+    <br>
+    <div class="birthday_result">The probability of a shared birthday exceeds 50% in a group of <span id="birthday_result"></span> people.</div>
+    <br>
+    <div class="birthday_recalculate"><button id="birthday_recalculate">Recalculate</button></div>
+    <script src='https://cdn.plot.ly/plotly-2.12.1.min.js'></script>
+    <script>
+        document.getElementById('birthday_recalculate').onclick = function() {
+      drawGraph()
+    }
+
+    function birthdayProb(num) {
+        var match = 0
+        for (var i = 0; i < 1000; i++) {
+            var birthdays = []
+            for (var j = 1; j <= num; j++) {
+                x = Math.floor(Math.random() * 365 + 1)
+                if (birthdays.indexOf(x) != -1) {
+                  match++
+                  break
+                }
+                birthdays.push(x)
+            }
+        }
+        return match/1000
+    }
+	
+	function checkFifty(x_axis, y_axis) {
+		for (var i = 0; i < y_axis.length; i++) {
+			if (y_axis[i] >= 0.5) {
+				return x_axis[i]
+			}
+		}
+		return undefined
+	}
+
+  function drawGraph() {
+    var x_axis = []
+    var y_axis = []
+
+    for (var i = 1; i <=100; i++) {
+        x_axis.push(i)
+        y_axis.push(birthdayProb(i))
+    }
+    document.getElementById('birthday_result').innerHTML = checkFifty(x_axis, y_axis)
+    var trace = {
+        x: [...x_axis],
+        y: [...y_axis],
+        mode: 'lines',
+        type: 'scatter'
+      };
+
+      var layout = {
+        margin: {t:0,r:0,b:0,l:20},
+        xaxis: {
+          automargin: true,
+          tickangle: 0,
+          title: {
+            text: "Size of group",
+            standoff: 20
+          }},
+        yaxis: {
+          automargin: true,
+          tickangle: 0,
+          title: {
+            text: "Probability",
+            standoff: 40
+          }}}
+    
+    var data = [trace]
+    Plotly.newPlot('birthday_container', data, layout, {displayModeBar : false})
+  }
+  drawGraph()
+    </script>
+<br>
+<br>
+<h3>Once in a Lifetime</h3>
+<p>There are 52! ways how to arrange a deck of 52 cards. This number is so big that it means that when you shuffle a deck of cards properly there's no chance you'd see the cards in the same order ever again. So enjoy the sight below - you'll never see it again.</p>
+<div class="cards_container" id="cards_container"></div>
+<br>
+<div class="reshuffle"><button id="reshuffle">Reshuffle</button></div>
+<script type="text/javascript">
+    DJANGO_STATIC_URL = '{{ STATIC_URL }}';
+    function showCards() {
+    var cards = []
+    for (var i = 1; i <=52; i++) {
+        cards.push(i)
+    }
+    var container = document.getElementById('cards_container')
+    container.innerHTML = ""
+    for (var i = 1; i <=52; i++) {
+        var cardNumber = randomCard()
+        var newCard = document.createElement('div')
+        var image = document.createElement('img')
+        image.src = `/assets/playing_cards/${cardNumber}.png`
+        image.classList.add('card_image')
+        //image.src = `/assets/playing_cards/${cardNumber}.png`
+        //image.src = `./static/blog/assets/playing_cards/${cardNumber}.png`
+        container.appendChild(newCard)
+        newCard.appendChild(image)
+    }
+    
+    function randomCard() {
+        var randCard =  Math.floor(Math.random() * cards.length)
+        var card = cards[randCard]
+        cards.splice(randCard, 1)
+        return card
+    }
+    }
+    document.getElementById('reshuffle').onclick = function() {
+        showCards()
+    }
+    
+    showCards()
+</script>
+</div>
+</div>
+
+</article>
+</body>
+</html>
